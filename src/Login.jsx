@@ -1,11 +1,32 @@
-import React from "react";
 import { useState } from "react";
+import axios from "axios";
+import { useDispatch } from "react-redux";
+import { addUser } from "./utils/userSlice";
+
 
 const Login = () => {
-  const [emailId, setEmailId] = useState("");
-  const [password, setPassword] = useState("");
+  const [emailId, setEmailId] = useState("priyanshu@gamil.com");
+  const [password, setPassword] = useState("Priyanshu@1234");
+  const dispatch = useDispatch();
 
-   
+
+
+  const handleLogin = async () => {
+    try {
+      const res = await axios.post(
+        "http://localhost:3000/login",
+        {
+          emailId,
+          password,
+        },
+        { withCredentials: true },
+      );
+      console.log("Login attempt with:", res.data);
+      dispatch(addUser(res.data));
+    } catch (error) {
+      console.error("Login error:", error);
+    }
+  };
 
   return (
     <div className="flex justify-center my-10">
@@ -39,7 +60,9 @@ const Login = () => {
             </label>
           </div>
           <div className="card-actions justify-center">
-            <button className="btn btn-primary ">Log In</button>
+            <button className="btn btn-primary" onClick={handleLogin}>
+              Login
+            </button>
           </div>
         </div>
       </div>
@@ -48,3 +71,4 @@ const Login = () => {
 };
 
 export default Login;
+
