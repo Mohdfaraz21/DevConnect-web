@@ -22,7 +22,7 @@ const UserCard = ({ user }) => {
   };
 
   return (
-    <div className="card bg-base-300 w-80 shadow-xl overflow-hidden h-auto">
+    <div className="card bg-base-300 w-full max-w-sm shadow-xl overflow-hidden h-auto transform transition-transform hover:scale-105">
       {/* Image */}
       <figure className="relative h-72">
         <img
