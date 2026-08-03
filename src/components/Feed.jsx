@@ -30,6 +30,7 @@ const Feed = () => {
   // Responsive columns -> items per page
   const [columns, setColumns] = useState(4);
   const [page, setPage] = useState(1);
+  const [selectedPerPage, setSelectedPerPage] = useState("auto");
 
   useEffect(() => {
     const updateColumns = () => {
@@ -46,15 +47,16 @@ const Feed = () => {
   }, []);
 
   useEffect(() => {
-    // reset to first page if feed or columns changed in a way that invalidates the page
+    // reset to first page if feed, columns or per-page selection changes
     setPage(1);
-  }, [columns]);
+  }, [columns, selectedPerPage, feed.length]);
 
   if (!feed) return;
 
   if (feed.length <= 0)
     return <h1 className="flex justify-center my-10">No new User found!!</h1>;
-  const itemsPerPage = columns;
+  const itemsPerPage =
+    selectedPerPage === "auto" ? columns : Number(selectedPerPage);
   const totalPages = Math.max(1, Math.ceil(feed.length / itemsPerPage));
 
   const start = (page - 1) * itemsPerPage;
@@ -63,14 +65,33 @@ const Feed = () => {
   return (
     feed && (
       <div className="max-w-6xl mx-auto my-10 px-4">
-        <h2 className="text-2xl font-semibold mb-6 text-center">
-          People You May Know
-        </h2>
+        <div className="flex flex-col items-center">
+          <h2 className="text-2xl font-semibold mb-2 text-center">
+            People You May Know
+          </h2>
+
+          <div className="text-sm mb-4 text-center">
+            <label className="mr-2">Show:</label>
+            <select
+              className="select select-sm"
+              value={selectedPerPage}
+              onChange={(e) => setSelectedPerPage(e.target.value)}
+            >
+              <option value="auto">Auto</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+          </div>
+        </div>
 
         <div className="flex justify-center">
-          <div className="inline-grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="flex flex-wrap justify-center gap-6">
             {paged.map((user) => (
-              <UserCard key={user._id} user={user} />
+              <div key={user._id} className="flex justify-center">
+                <UserCard user={user} />
+              </div>
             ))}
           </div>
         </div>
