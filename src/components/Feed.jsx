@@ -8,128 +8,55 @@ import UserCard from "./UserCard";
 const Feed = () => {
   const feed = useSelector((state) => state.feed.feed);
   const dispatch = useDispatch();
-
-  const getFeed = async () => {
-    if (feed.length) return;
-    try {
-      const res = await axios.get(BASE_URL + "/feed", {
-        withCredentials: true,
-      });
-      //console.log(res.data);
-
-      dispatch(addFeed(res?.data?.data));
-    } catch (error) {
-      //TODO: Handle error
-    }
-  };
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    getFeed();
-  }, []);
+    const getFeed = async () => {
+      if (feed.length) return;
+      setError(null);
 
-  // Responsive columns -> items per page
-  const [columns, setColumns] = useState(4);
-  const [page, setPage] = useState(1);
-  const [selectedPerPage, setSelectedPerPage] = useState("auto");
+      try {
+        const res = await axios.get(BASE_URL + "/feed", {
+          withCredentials: true,
+        });
 
-  useEffect(() => {
-    const updateColumns = () => {
-      const w = window.innerWidth;
-      if (w < 640) setColumns(1);
-      else if (w < 768) setColumns(2);
-      else if (w < 1024) setColumns(3);
-      else setColumns(4);
+        dispatch(addFeed(res?.data?.data));
+      } catch (error) {
+        console.error("Failed to fetch feed:", error);
+        setError(
+          "Unable to load people suggestions right now. Please try again later.",
+        );
+      }
     };
 
-    updateColumns();
-    window.addEventListener("resize", updateColumns);
-    return () => window.removeEventListener("resize", updateColumns);
-  }, []);
+    getFeed();
+  }, [dispatch, feed.length]);
 
-  useEffect(() => {
-    // reset to first page if feed, columns or per-page selection changes
-    setPage(1);
-  }, [columns, selectedPerPage, feed.length]);
-
-  if (!feed) return;
+  if (!feed) return null;
 
   if (feed.length <= 0)
     return <h1 className="flex justify-center my-10">No new User found!!</h1>;
-  const itemsPerPage =
-    selectedPerPage === "auto" ? columns : Number(selectedPerPage);
-  const totalPages = Math.max(1, Math.ceil(feed.length / itemsPerPage));
-
-  const start = (page - 1) * itemsPerPage;
-  const paged = feed.slice(start, start + itemsPerPage);
 
   return (
-    feed && (
-      <div className="max-w-6xl mx-auto my-10 px-4">
-        <div className="flex flex-col items-center">
-          <h2 className="text-2xl font-semibold mb-2 text-center">
-            People You May Know
-          </h2>
+    <div className="max-w-6xl mx-auto my-10 px-4">
+      <div className="flex flex-col items-center">
+        <h2 className="text-2xl font-semibold mb-2 text-center">
+          People You May Know
+        </h2>
 
-          <div className="text-sm mb-4 text-center">
-            <label className="mr-2">Show:</label>
-            <select
-              className="select select-sm"
-              value={selectedPerPage}
-              onChange={(e) => setSelectedPerPage(e.target.value)}
-            >
-              <option value="auto">Auto</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="flex justify-center">
-          <div className="flex flex-wrap justify-center gap-6">
-            {paged.map((user) => (
-              <div key={user._id} className="flex justify-center">
-                <UserCard user={user} />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Pagination */}
-        {feed.length > itemsPerPage && (
-          <div className="flex justify-center mt-8">
-            <div className="btn-group">
-              <button
-                className="btn btn-sm"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-              >
-                Prev
-              </button>
-
-              {Array.from({ length: totalPages }).map((_, i) => (
-                <button
-                  key={i}
-                  className={`btn btn-sm ${page === i + 1 ? "btn-active" : ""}`}
-                  onClick={() => setPage(i + 1)}
-                >
-                  {i + 1}
-                </button>
-              ))}
-
-              <button
-                className="btn btn-sm"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
+        {error && <p className="mb-4 text-center text-red-500">{error}</p>}
       </div>
-    )
+
+      <div className="flex justify-center">
+        <div className="flex flex-wrap justify-center gap-6">
+          {feed.map((user) => (
+            <div key={user._id} className="flex justify-center">
+              <UserCard user={user} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 };
 
